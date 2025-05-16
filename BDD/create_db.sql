@@ -1,5 +1,5 @@
 CREATE TABLE clients (
-                         id_client INT AUTO_INCREMENT PRIMARY KEY,
+                         id INT AUTO_INCREMENT PRIMARY KEY,
                          nom VARCHAR(255) NOT NULL,
                          prenom VARCHAR(255) NOT NULL,
                          email VARCHAR(255) NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE clients (
 );
 
 CREATE TABLE auteurs (
-                         id_auteur INT AUTO_INCREMENT PRIMARY KEY,
+                         id INT AUTO_INCREMENT PRIMARY KEY,
                          nom VARCHAR(255) NOT NULL,
                          prenom VARCHAR(255) NOT NULL,
                          date_naissance DATE NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE auteurs (
 );
 
 CREATE TABLE livres (
-                        id_livre INT AUTO_INCREMENT PRIMARY KEY,
+                        id INT AUTO_INCREMENT PRIMARY KEY,
                         titre VARCHAR(255) NOT NULL,
                         isbn VARCHAR(20) DEFAULT NULL,
                         date_parution DATE DEFAULT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE livres_auteurs (
 );
 
 CREATE TABLE emprunts (
-                          id_emprunt INT AUTO_INCREMENT PRIMARY KEY,
+                          id INT AUTO_INCREMENT PRIMARY KEY,
                           id_client INT NOT NULL,
                           id_livre INT NOT NULL,
                           date_emprunt DATE NOT NULL,
