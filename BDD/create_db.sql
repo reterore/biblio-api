@@ -22,8 +22,6 @@ CREATE TABLE livres (
                         titre VARCHAR(255) NOT NULL,
                         isbn VARCHAR(20) DEFAULT NULL,
                         date_parution DATE DEFAULT NULL,
-                        item_3 VARCHAR(255) DEFAULT NULL,
-                        blzbz VARCHAR(255) DEFAULT NULL
 );
 
 -- utilisation d'une clé composite (= identifiant unique de l'association)
