@@ -21,7 +21,7 @@ CREATE TABLE livres (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         titre VARCHAR(255) NOT NULL,
                         isbn VARCHAR(20) DEFAULT NULL,
-                        date_parution DATE DEFAULT NULL,
+                        date_parution DATE DEFAULT NULL
 );
 
 -- utilisation d'une clé composite (= identifiant unique de l'association)
