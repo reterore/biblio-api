@@ -175,8 +175,8 @@ final class LivreController extends AbstractController
         $qb = $em->getRepository(Livre::class)->createQueryBuilder('l'); // l pour livre
 
         if ($titre !== null) {
-            $qb->andWhere('LOWER(l.titre) LIKE LOWER(:titre)')
-                ->setParameter('titre', '%' . $titre . '%');
+            $qb->andWhere('LOWER(l.titre) LIKE LOWER(:titre)')  // LOWER() rend la recherche insensible à la casse
+                ->setParameter('titre', '%' . $titre . '%'); // on change titre en %titre% (recherche de l'appartenance de titre dans le string)
         }
 
         if ($isbn !== null) {
@@ -185,7 +185,7 @@ final class LivreController extends AbstractController
         }
 
         if ($auteurId !== null) {
-            if (!is_numeric($auteurId)) {
+            if (!is_numeric($auteurId)) { // regarde si l'id passé est un entier
                 return $this->json(['error' => 'auteur_id doit être un entier.'], 400);
             }
 
@@ -194,9 +194,9 @@ final class LivreController extends AbstractController
                 ->setParameter('auteurId', $auteurId);
         }
 
-        $livres = $qb->getQuery()->getResult();
+        $livres = $qb->getQuery()->getResult(); // $livres devient le tableau d'objet livre retourné par la requête
 
-        if (empty($livres)) {
+        if (empty($livres)) { // la requête ne retourne rien = rien ne correspond à la recherche
             return $this->json(['message' => 'Aucun livre correspondant à la recherche.'], 404);
         }
 
