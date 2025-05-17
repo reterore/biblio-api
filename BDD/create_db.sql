@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS auteurs;
 DROP TABLE IF EXISTS clients;
 
 -- Table des clients
-CREATE TABLE clients (
+CREATE TABLE client (
                          id_client INT AUTO_INCREMENT PRIMARY KEY,
                          nom VARCHAR(255) NOT NULL,
                          prenom VARCHAR(255) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE clients (
 );
 
 -- Table des auteurs
-CREATE TABLE auteurs (
+CREATE TABLE auteur (
                          id_auteur INT AUTO_INCREMENT PRIMARY KEY,
                          nom VARCHAR(255) NOT NULL,
                          prenom VARCHAR(255) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE auteurs (
 );
 
 -- Table des livres
-CREATE TABLE livres (
+CREATE TABLE livre (
                         id_livre INT AUTO_INCREMENT PRIMARY KEY,
                         titre VARCHAR(255) NOT NULL,
                         isbn VARCHAR(20) DEFAULT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE livres (
 );
 
 -- Table de jonction livres_auteurs (relation N:N)
-CREATE TABLE livres_auteurs (
+CREATE TABLE livre_auteur (
                                 id_livre INT NOT NULL,
                                 id_auteur INT NOT NULL,
                                 PRIMARY KEY (id_livre, id_auteur),
@@ -48,7 +48,8 @@ CREATE TABLE livres_auteurs (
 );
 
 -- Table des emprunts
-CREATE TABLE emprunts (
+
+CREATE TABLE emprunt (
                           id_emprunt INT AUTO_INCREMENT PRIMARY KEY,
                           id_client INT NOT NULL,
                           id_livre INT NOT NULL,

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Homepage</title>
+</head>
+<body>
+
+<h1>Tests de l'API</h1>
+
+<h2>Endpoints – Livres</h2>
+
+<table>
+    <thead>
+    <tr>
+        <th>Méthode</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>GET</td>
+        <td>/livres</td>
+        <td>Récupère tous les livres</td>
+        <td><a href="http://127.0.0.1:8000/livres" target="_blank">Tester</a></td>
+    </tr>
+    <tr>
+        <td>GET</td>
+        <td>/livres/{id}</td>
+        <td>Récupère un livre spécifique</td>
+        <td>
+            <input type="text" id="livreId" placeholder="ID du livre">
+            <button onclick="openLivreById()">Tester</button>
+        </td>
+    </tr>
+    <tr>
+        <td>POST</td>
+        <td>/livres</td>
+        <td>Crée un nouveau livre (JSON requis)</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>PUT</td>
+        <td>/livres/1</td>
+        <td>Met à jour un livre existant</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>DELETE</td>
+        <td>/livres/1</td>
+        <td>Supprime un livre</td>
+        <td></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+
+<script>
+    function openLivreById() {
+        const id = document.getElementById('livreId').value.trim();
+        if (id === '') {
+            alert("Veuillez entrer un ID.");
+            return;
+        }
+        const url = "http://127.0.0.1:8000/livres/" + encodeURIComponent(id);
+        window.open(url, '_blank');
+    }
+</script>
+
+</html>

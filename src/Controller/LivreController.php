@@ -1,0 +1,154 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Livre;
+use App\Form\LivreForm;
+use App\Repository\LivreRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\SerializerInterface;
+
+#[Route('/livres')]
+final class LivreController extends AbstractController
+{
+    #[Route('', name: 'livres_index', methods: ['GET'])]
+    public function index(LivreRepository $livreRepository): JsonResponse
+    {
+        return $this->json($livreRepository->findAll(), 200, [], ['groups' => 'livre:read']);
+    }
+
+    #[Route('/{id}', name: 'livres_show', methods: ['GET'])]
+    public function show(Livre $livre): JsonResponse
+    {
+        return $this->json($livre, 200, [], ['groups' => 'livre:read']);
+    }
+
+    #[Route('/create', name: 'livres_create', methods: ['GET'])]
+    public function create(
+        Request $request,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $errors = [];
+
+        $titre = $request->query->get('titre');
+        $isbn = $request->query->get('isbn');
+        $dateParutionStr = $request->query->get('date_parution');
+        $auteurId = $request->query->get('auteur_id');
+
+        // Vérifications des champs
+        if (!$titre) {
+            $errors[] = 'Paramètre titre manquant';
+        }
+
+        if (!$isbn) {
+            $errors[] = 'Paramètre isbn manquant';
+        }
+
+        if (!$dateParutionStr) {
+            $errors[] = 'Paramètre date de parution manquant';
+        }
+
+        if (!$auteurId) {
+            $errors[] = 'Paramètre auteur_id manquant';
+        }
+
+        // Vérification de l'auteur en base
+        $auteur = $em->getRepository(\App\Entity\Auteur::class)->find($auteurId);
+        if (!$auteur) {
+            $errors[] = 'Auteur introuvable';
+        }
+
+        // Vérification de la date
+        $dateParution = \DateTime::createFromFormat('Y-m-d', $dateParutionStr);
+        if (!$dateParution) {
+            $errors[] = 'Date invalide. Format attendu : Y-m-d';
+        }
+
+        // Retour si erreurs secondaires
+        if (count($errors) > 0) {
+            return $this->json(['errors' => $errors], 400);
+        }
+
+        // Création du livre
+        $livre = new Livre();
+        $livre->setTitre($titre);
+        $livre->setIsbn($isbn);
+        $livre->setDateParution($dateParution);
+        $livre->addAuteur($auteur);
+
+        $em->persist($livre);
+        $em->flush();
+
+        return $this->json($livre, 201, [], ['groups' => 'livre:read']);
+    }
+
+    #[Route('/{id}', name: 'livres_edit', methods: ['PUT'])]
+    public function edit(
+        Request $request,
+        Livre $livre,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $errors = [];
+
+        $titre = $request->query->get('titre');
+        $isbn = $request->query->get('isbn');
+        $dateParutionStr = $request->query->get('date_parution');
+        $auteurId = $request->query->get('auteur_id');
+
+        // Vérifie qu'au moins un paramètre est présent
+        if (!$titre && !$isbn && !$dateParutionStr && !$auteurId) {
+            return $this->json(['error' => 'Aucun paramètre fourni pour la modification'], 400);
+        }
+
+        // Si l'un des paramètres est fourni, on tente de l'appliquer
+        if ($titre !== null) {
+            $livre->setTitre($titre);
+        }
+
+        if ($isbn !== null) {
+            $livre->setIsbn($isbn);
+        }
+
+        if ($dateParutionStr !== null) {
+            $dateParution = \DateTime::createFromFormat('Y-m-d', $dateParutionStr);
+            if (!$dateParution) {
+                $errors[] = 'Date invalide. Format attendu : Y-m-d';
+            } else {
+                $livre->setDateParution($dateParution);
+            }
+        }
+
+        if ($auteurId !== null) {
+            $auteur = $em->getRepository(\App\Entity\Auteur::class)->find($auteurId);
+            if (!$auteur) {
+                $errors[] = 'Auteur introuvable';
+            } else {
+                $livre->getAuteurs()->clear();
+                $livre->addAuteur($auteur);
+            }
+        }
+
+        if (count($errors) > 0) {
+            return $this->json(['errors' => $errors], 400);
+        }
+
+        $em->flush();
+
+        return $this->json($livre, 200, [], ['groups' => 'livre:read']);
+    }
+
+
+
+    #[Route('/{id}', name: 'livres_delete', methods: ['DELETE'])]
+    public function delete(Request $request, Livre $livre, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $entityManager->remove($livre);
+        $entityManager->flush();
+
+        return new JsonResponse(null, 204);
+    }
+}
