@@ -83,7 +83,7 @@ final class LivreController extends AbstractController
         $em->persist($livre);
         $em->flush();
 
-        return $this->json($livre, 201, [], ['groups' => 'livre:read']);
+        return $this->json($livre, 200, [], ['groups' => 'livre:read']);
     }
 
     #[Route('/{id}', name: 'livres_edit', methods: ['PUT'])]
@@ -143,11 +143,16 @@ final class LivreController extends AbstractController
     }
 
     #[Route('/{id}', name: 'livres_delete', methods: ['DELETE'])]
-    public function delete(Request $request, Livre $livre, EntityManagerInterface $entityManager): JsonResponse
+    public function delete(Livre $livre, EntityManagerInterface $entityManager): JsonResponse
     {
+        if ($livre->getId() !== null) {
+            return $this->json(['errors' => "aucun livre avec cet id dans la bibliothèque"], 400);
+        }
+
+
         $entityManager->remove($livre);
         $entityManager->flush();
 
-        return new JsonResponse(null, 204);
+        return new JsonResponse(null, 200);
     }
 }
