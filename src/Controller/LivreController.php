@@ -22,8 +22,14 @@ final class LivreController extends AbstractController
     }
 
     #[Route('/{id}', name: 'livres_show', methods: ['GET'])]
-    public function show(Livre $livre): JsonResponse
+    public function show(int $id, EntityManagerInterface $entityManager): JsonResponse
     {
+        $livre = $entityManager->getRepository(\App\Entity\Livre::class)->find($id);
+        if (!$livre) {
+            return $this->json([
+                'erreur' => 'Aucun livre avec cet ID dans la bibliothèque.'
+            ], 404); // Code correct mais réponse propre
+        }
         return $this->json($livre, 200, [], ['groups' => 'livre:read']);
     }
 
@@ -134,7 +140,7 @@ final class LivreController extends AbstractController
 
         // En cas d’erreurs
         if (count($errors) > 0) {
-            return $this->json(['errors' => $errors], 400);
+            return $this->json(['erreurs' => $errors], 400);
         }
 
         $em->flush();
@@ -143,16 +149,20 @@ final class LivreController extends AbstractController
     }
 
     #[Route('/{id}', name: 'livres_delete', methods: ['DELETE'])]
-    public function delete(Livre $livre, EntityManagerInterface $entityManager): JsonResponse
+    public function delete(int $id, EntityManagerInterface $entityManager): JsonResponse
     {
-        if ($livre->getId() !== null) {
-            return $this->json(['errors' => "aucun livre avec cet id dans la bibliothèque"], 400);
-        }
+        $livre = $entityManager->getRepository(\App\Entity\Livre::class)->find($id);
 
+        if (!$livre) {
+            return $this->json([
+                'erreur' => 'Aucun livre avec cet ID dans la bibliothèque.'
+            ], 404); // Code correct mais réponse propre
+        }
 
         $entityManager->remove($livre);
         $entityManager->flush();
 
-        return new JsonResponse(null, 200);
+        return $this->json(null, 204); // Suppression OK, sans contenu
     }
+
 }
