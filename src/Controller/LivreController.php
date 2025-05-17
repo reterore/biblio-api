@@ -21,8 +21,8 @@ final class LivreController extends AbstractController
         return $this->json($livreRepository->findAll(), 200, [], ['groups' => 'livre:read']);
     }
 
-    #[Route('/{id}', name: 'livres_show', methods: ['GET'])]
-    public function show(int $id, EntityManagerInterface $entityManager): JsonResponse
+    #[Route('/{id}', name: 'livres_show', requirements: ['id' => '\d+'], methods: ['GET'])]  //requirements: ['id' => '\d+'] permet de s'assurer que l'id passer
+    public function show(int $id, EntityManagerInterface $entityManager): JsonResponse       // est un nombre entier positif.
     {
         $livre = $entityManager->getRepository(\App\Entity\Livre::class)->find($id);
         if (!$livre) {
@@ -163,6 +163,45 @@ final class LivreController extends AbstractController
         $entityManager->flush();
 
         return $this->json(null, 204); // Suppression OK, sans contenu
+    }
+
+    #[Route('/search', name: 'livres_search', methods: ['GET'])]
+    public function search(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $titre = $request->query->get('titre');
+        $isbn = $request->query->get('isbn');
+        $auteurId = $request->query->get('auteur_id');
+
+        $qb = $em->getRepository(Livre::class)->createQueryBuilder('l'); // l pour livre
+
+        if ($titre !== null) {
+            $qb->andWhere('LOWER(l.titre) LIKE LOWER(:titre)')
+                ->setParameter('titre', '%' . $titre . '%');
+        }
+
+        if ($isbn !== null) {
+            $qb->andWhere('l.isbn = :isbn')
+                ->setParameter('isbn', $isbn);
+        }
+
+        if ($auteurId !== null) {
+            if (!is_numeric($auteurId)) {
+                return $this->json(['error' => 'auteur_id doit être un entier.'], 400);
+            }
+
+            $qb->join('l.auteurs', 'a')
+                ->andWhere('a.id = :auteurId')
+                ->setParameter('auteurId', $auteurId);
+        }
+
+        $livres = $qb->getQuery()->getResult();
+
+        if (empty($livres)) {
+            return $this->json(['message' => 'Aucun livre correspondant à la recherche.'], 404);
+        }
+
+        return $this->json($livres, 200, [], ['groups' => 'livre:read']);
+
     }
 
 }
