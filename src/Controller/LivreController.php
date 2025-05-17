@@ -99,12 +99,12 @@ final class LivreController extends AbstractController
         $dateParutionStr = $request->query->get('date_parution');
         $auteurId = $request->query->get('auteur_id');
 
-        // Vérifie qu'au moins un paramètre est présent
-        if (!$titre && !$isbn && !$dateParutionStr && !$auteurId) {
-            return $this->json(['error' => 'Aucun paramètre fourni pour la modification'], 400);
+        // Si aucun paramètre n’est fourni, on retourne simplement le livre tel quel
+        if ($titre === null && $isbn === null && $dateParutionStr === null && $auteurId === null) {
+            return $this->json($livre, 200, [], ['groups' => 'livre:read']);
         }
 
-        // Si l'un des paramètres est fourni, on tente de l'appliquer
+        // Application conditionnelle des modifications
         if ($titre !== null) {
             $livre->setTitre($titre);
         }
@@ -127,11 +127,12 @@ final class LivreController extends AbstractController
             if (!$auteur) {
                 $errors[] = 'Auteur introuvable';
             } else {
-                $livre->getAuteurs()->clear();
+                $livre->getAuteurs()->clear();  // si ManyToMany
                 $livre->addAuteur($auteur);
             }
         }
 
+        // En cas d’erreurs
         if (count($errors) > 0) {
             return $this->json(['errors' => $errors], 400);
         }
@@ -140,8 +141,6 @@ final class LivreController extends AbstractController
 
         return $this->json($livre, 200, [], ['groups' => 'livre:read']);
     }
-
-
 
     #[Route('/{id}', name: 'livres_delete', methods: ['DELETE'])]
     public function delete(Request $request, Livre $livre, EntityManagerInterface $entityManager): JsonResponse
