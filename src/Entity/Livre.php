@@ -19,7 +19,7 @@ class Livre
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['livre:read', 'livre:write', 'auteur:read'])]
+    #[Groups(['livre:read', 'livre:write', 'auteur:read', "client:read"])]
     private ?string $titre = null;
 
     #[ORM\Column(length: 255)]

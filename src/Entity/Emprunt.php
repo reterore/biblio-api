@@ -23,7 +23,7 @@ class Emprunt
 
     #[ORM\ManyToOne(inversedBy: 'emprunts')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['emprunt:read', 'emprunt:write'])]
+    #[Groups(['emprunt:read', 'emprunt:write', 'client:read'])]
     private ?Livre $livre = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]

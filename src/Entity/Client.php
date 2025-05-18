@@ -39,7 +39,7 @@ class Client
     private ?string $adresse = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
-    #[Groups(['client:read', 'client:write'])]
+    #[Groups(['client:read'])]
     private ?\DateTime $date_inscription = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
@@ -56,6 +56,7 @@ class Client
     public function __construct()
     {
         $this->emprunts = new ArrayCollection();
+        $this->date_inscription = new \DateTime();
     }
 
     public function getId(): ?int { return $this->id; }

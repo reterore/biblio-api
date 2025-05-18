@@ -29,4 +29,18 @@
 - curl.exe "http://localhost:8000/auteurs/search?date_naissance=1965-07-31"
 - curl.exe "http://localhost:8000/auteurs/search?date_naissance=1900-05-31"
 
+## client
+
+- curl.exe -X GET "http://localhost:8000/clients"
+- curl.exe -X GET "http://localhost:8000/clients/create?nom=Durand&prenom=Alice&adresse=12%20rue%20des%20Lilas,%20Paris"
+- curl.exe -X GET "http://localhost:8000/clients/create?nom=Durand&prenom=Alice&email=alice.durand@example.com&tel=0000000000&adresse=12%20rue%20des%20Lilas%2C%20Paris&date_naissance=1990-06-25"
+- curl.exe -X PUT "http://localhost:8000/clients/1?email=alice.nouvel@example.com&tel=1111111111"
+- curl.exe -X DELETE "http://localhost:8000/clients/3"
+- curl.exe -X DELETE "http://localhost:8000/clients/10"
+- curl.exe "http://localhost:8000/clients/search?nom=Durand"
+- curl.exe "http://localhost:8000/clients/search?adresse=Lyon"
+- curl.exe "http://localhost:8000/clients/search?adresse=Belfort"
+- possibilité de créer 2 nouveau clients et de les rechercher via la date du jour pour vérifier que les 2 apparaissent
+
+## emprunts
 
