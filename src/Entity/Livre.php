@@ -43,6 +43,10 @@ class Livre
     #[ORM\OneToMany(targetEntity: Emprunt::class, mappedBy: 'livre')]
     private Collection $emprunts;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Genre $genre = null;
+
     public function __construct()
     {
         $this->auteurs = new ArrayCollection();
@@ -138,4 +142,22 @@ class Livre
 
         return $this;
     }
+
+    public function getGenre(): ?Genre
+    {
+        return $this->genre;
+    }
+
+    public function setGenre(?Genre $genre): static
+    {
+        $this->genre = $genre;
+
+        return $this;
+    }
+    #[Groups(['livre:read'])]
+    public function getNomGenre(): ?string
+    {
+        return $this->genre?->getNom();
+    }
+
 }

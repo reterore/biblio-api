@@ -49,3 +49,5 @@
 - curl.exe -X GET "http://localhost:8000/emprunts/3"
 - curl.exe -X GET "http://localhost:8000/emprunts/create?client_id=1&livre_id=1&date_emprunt=2024-05-20"
 - curl.exe -X GET "http://localhost:8000/emprunts/create?client_id=1&livre_id=1&date_emprunt=2024-05-20&date_limite_retour=2024-06-20"
+- curl.exe -X DELETE "http://localhost:8000/emprunts/3"
+- curl.exe -X DELETE "http://localhost:8000/emprunts/77"

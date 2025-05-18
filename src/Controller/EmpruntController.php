@@ -36,6 +36,7 @@ final class EmpruntController extends AbstractController
     {
         $clientId = $request->query->get('client_id');
         $livreId = $request->query->get('livre_id');
+        $dateLimiteRetourStr = $request->query->get('date_limite_retour'); // optionnel sinon 1 mois après création de l'emprunt
 
         if (!$clientId || !$livreId) {
             return $this->json(['erreur' => 'Champs obligatoires manquants (client_id, livre_id)'], 400);
@@ -58,7 +59,7 @@ final class EmpruntController extends AbstractController
                 ->getOneOrNullResult();
 
             if ($empruntEnCours) {
-                $errors[] = 'Ce livre est déjà emprunte et non encore retourne.';
+                $errors[] = 'Ce livre est déjà emprunté actuellement.';
             }
         }
 
@@ -66,20 +67,101 @@ final class EmpruntController extends AbstractController
             return $this->json(['erreurs' => $errors], 400);
         }
 
-        // Utilise la date actuelle pour l'emprunt
-        $dateEmprunt = new \DateTime(); // équivalent à NOW() sur php
-        $dateLimite = (clone $dateEmprunt)->modify('+1 month');
+        // Date d'emprunt = maintenant
+        $dateEmprunt = new \DateTime();
+
+        // Détermination de la date limite
+        if ($dateLimiteRetourStr !== null) {
+            $dateLimiteRetour = \DateTime::createFromFormat('Y-m-d', $dateLimiteRetourStr);
+            if (!$dateLimiteRetour) {
+                return $this->json(['erreur' => 'Format de date_limite_retour invalide. Format attendu : Y-m-d.'], 400);
+            }
+        } else {
+            $dateLimiteRetour = (clone $dateEmprunt)->modify('+1 month');
+        }
 
         $emprunt = new Emprunt();
         $emprunt->setClient($client);
         $emprunt->setLivre($livre);
         $emprunt->setDateEmprunt($dateEmprunt);
-        $emprunt->setDateLimiteRetour($dateLimite);
+        $emprunt->setDateLimiteRetour($dateLimiteRetour);
 
         $em->persist($emprunt);
         $em->flush();
 
         return $this->json($emprunt, 201, [], ['groups' => 'emprunt:read']);
+    }
+
+
+    #[Route('/{id}', name: 'emprunts_update', methods: ['PUT'])]
+    public function update(Request $request, int $id, EntityManagerInterface $em): JsonResponse
+    {
+        $emprunt = $em->getRepository(Emprunt::class)->find($id);
+
+        if (!$emprunt) {
+            return $this->json(['erreur' => "Aucun emprunt trouvé avec l'ID $id."], 404);
+        }
+
+        $errors = [];
+
+        // Récupération des données de requête
+        $dateRetourStr = $request->query->get('date_retour');
+        $dateLimiteRetourStr = $request->query->get('date_limite_retour');
+        $clientId = $request->query->get('client_id');
+        $livreId = $request->query->get('id_livre');
+        // Aucun paramètre fourni
+        if ($dateRetourStr === null && $dateLimiteRetourStr === null && $clientId === null && $livreId === null) {
+            return $this->json(['message' => 'Aucune donnée fournie pour la mise à jour.'], 400);
+        }
+
+        // Date de retour réelle
+        if ($dateRetourStr !== null) {
+            $dateRetour = \DateTime::createFromFormat('Y-m-d', $dateRetourStr);
+            if (!$dateRetour) {
+                $errors[] = "Format de date_retour invalide. Format attendu : Y-m-d.";
+            } else {
+                $emprunt->setDateRetour($dateRetour);
+            }
+        }
+
+        // Date limite de retour
+        if ($dateLimiteRetourStr !== null) {
+            $dateLimite = \DateTime::createFromFormat('Y-m-d', $dateLimiteRetourStr);
+            if (!$dateLimite) {
+                $errors[] = "Format de date_limite_retour invalide. Format attendu : Y-m-d.";
+            } else {
+                $emprunt->setDateLimiteRetour($dateLimite);
+            }
+        }
+
+        // Client
+        if ($clientId !== null) {
+            $client = $em->getRepository(\App\Entity\Client::class)->find($clientId);
+            if (!$client) {
+                $errors[] = "Client introuvable avec l'ID $clientId.";
+            } else {
+                $emprunt->setClient($client);
+            }
+        }
+
+        // Livre
+        if ($livreId !== null) {
+            $livre = $em->getRepository(\App\Entity\Livre::class)->find($livreId);
+            if (!$livre) {
+                $errors[] = "Livre introuvable avec l'ID $livreId.";
+            } else {
+                $emprunt->setLivre($livre);
+            }
+        }
+
+        // Erreurs ?
+        if (!empty($errors)) {
+            return $this->json(['erreurs' => $errors], 400);
+        }
+
+        $em->flush();
+
+        return $this->json($emprunt, 200, [], ['groups' => 'emprunt:read']);
     }
 
 
@@ -102,7 +184,8 @@ final class EmpruntController extends AbstractController
     public function search(Request $request, EntityManagerInterface $em): JsonResponse
     {
         $clientId = $request->query->get('client_id');
-        $livreId = $request->query->get('livre_id');
+        $livreId = $request->query->get('livre_id') ?? $request->query->get('id_livre');
+        $enCours = $request->query->get('en_cours'); // "true" ou "false"
 
         $qb = $em->getRepository(Emprunt::class)->createQueryBuilder('e');
 
@@ -114,12 +197,20 @@ final class EmpruntController extends AbstractController
             $qb->andWhere('e.livre = :livre')->setParameter('livre', $livreId);
         }
 
+        if ($enCours === 'true') {
+            $qb->andWhere('e.date_retour IS NULL');
+        } elseif ($enCours === 'false') {
+            $qb->andWhere('e.date_retour IS NOT NULL');
+        }
+
         $results = $qb->getQuery()->getResult();
 
         if (empty($results)) {
-            return $this->json(['message' => 'Aucun emprunt trouvé.'], 404);
+            return $this->json(['message' => 'rien ne correspondant a votre recherche.'], 404);
         }
 
         return $this->json($results, 200, [], ['groups' => 'emprunt:read']);
     }
+
+
 }
