@@ -3,14 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Livre;
-use App\Form\LivreForm;
 use App\Repository\LivreRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/livres')]
 final class LivreController extends AbstractController
@@ -62,24 +60,21 @@ final class LivreController extends AbstractController
             $errors[] = 'Paramètre auteur_id manquant';
         }
 
-        // Vérification de l'auteur en base
         $auteur = $em->getRepository(\App\Entity\Auteur::class)->find($auteurId);
         if (!$auteur) {
             $errors[] = 'Auteur introuvable';
         }
 
-        // Vérification de la date
         $dateParution = \DateTime::createFromFormat('Y-m-d', $dateParutionStr);
         if (!$dateParution) {
             $errors[] = 'Date invalide. Format attendu : Y-m-d';
         }
 
-        // Retour si erreurs secondaires
+        // Retour si erreurs
         if (count($errors) > 0) {
             return $this->json(['errors' => $errors], 400);
         }
 
-        // Création du livre
         $livre = new Livre();
         $livre->setTitre($titre);
         $livre->setIsbn($isbn);
@@ -110,7 +105,6 @@ final class LivreController extends AbstractController
             return $this->json($livre, 200, [], ['groups' => 'livre:read']);
         }
 
-        // Application conditionnelle des modifications
         if ($titre !== null) {
             $livre->setTitre($titre);
         }
@@ -133,7 +127,7 @@ final class LivreController extends AbstractController
             if (!$auteur) {
                 $errors[] = 'Auteur introuvable';
             } else {
-                $livre->getAuteurs()->clear();  // si ManyToMany
+                $livre->getAuteurs()->clear();
                 $livre->addAuteur($auteur);
             }
         }
@@ -156,13 +150,13 @@ final class LivreController extends AbstractController
         if (!$livre) {
             return $this->json([
                 'erreur' => 'Aucun livre avec cet ID dans la bibliothèque.'
-            ], 404); // Code correct mais réponse propre
+            ], 404);
         }
 
         $entityManager->remove($livre);
         $entityManager->flush();
 
-        return $this->json(null, 204); // Suppression OK, sans contenu
+        return $this->json(null, 204);
     }
 
     #[Route('/search', name: 'livres_search', methods: ['GET'])]
