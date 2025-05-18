@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: AuteurRepository::class)]
 class Auteur
@@ -14,24 +15,30 @@ class Auteur
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['auteur:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['auteur:read', 'auteur:write'])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['auteur:read', 'auteur:write'])]
     private ?string $prenom = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Groups(['auteur:read', 'auteur:write'])]
     private ?\DateTime $date_naissance = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Groups(['auteur:read', 'auteur:write'])]
     private ?\DateTime $date_mort = null;
 
     /**
      * @var Collection<int, Livre>
      */
     #[ORM\ManyToMany(targetEntity: Livre::class, mappedBy: 'auteurs')]
+    #[Groups(['auteur:read', 'auteur:write'])]
     private Collection $livres;
 
     public function __construct()
@@ -52,7 +59,6 @@ class Auteur
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
-
         return $this;
     }
 
@@ -64,7 +70,6 @@ class Auteur
     public function setPrenom(string $prenom): static
     {
         $this->prenom = $prenom;
-
         return $this;
     }
 
@@ -76,7 +81,6 @@ class Auteur
     public function setDateNaissance(\DateTime $date_naissance): static
     {
         $this->date_naissance = $date_naissance;
-
         return $this;
     }
 
@@ -88,7 +92,6 @@ class Auteur
     public function setDateMort(\DateTime $date_mort): static
     {
         $this->date_mort = $date_mort;
-
         return $this;
     }
 
@@ -106,7 +109,6 @@ class Auteur
             $this->livres->add($livre);
             $livre->addAuteur($this);
         }
-
         return $this;
     }
 
@@ -115,7 +117,6 @@ class Auteur
         if ($this->livres->removeElement($livre)) {
             $livre->removeAuteur($this);
         }
-
         return $this;
     }
 }

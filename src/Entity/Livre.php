@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: LivreRepository::class)]
 class Livre
@@ -14,28 +15,33 @@ class Livre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['livre:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['livre:read', 'livre:write'])]
     private ?string $titre = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['livre:read', 'livre:write'])]
     private ?string $isbn = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Groups(['livre:read', 'livre:write'])]
     private ?\DateTime $date_parution = null;
-
 
     /**
      * @var Collection<int, Auteur>
      */
     #[ORM\ManyToMany(targetEntity: Auteur::class, inversedBy: 'livres')]
+    #[Groups(['livre:read', 'livre:write'])]
     private Collection $auteurs;
 
     /**
      * @var Collection<int, Emprunt>
      */
     #[ORM\OneToMany(targetEntity: Emprunt::class, mappedBy: 'livre')]
+    #[Groups(['livre:read'])]
     private Collection $emprunts;
 
     public function __construct()
@@ -57,7 +63,6 @@ class Livre
     public function setTitre(string $titre): static
     {
         $this->titre = $titre;
-
         return $this;
     }
 
@@ -69,7 +74,6 @@ class Livre
     public function setIsbn(string $isbn): static
     {
         $this->isbn = $isbn;
-
         return $this;
     }
 
@@ -81,15 +85,8 @@ class Livre
     public function setDateParution(\DateTime $date_parution): static
     {
         $this->date_parution = $date_parution;
-
         return $this;
     }
-
-    /**
-     * @return Collection<int, Emprunt>
-     */
-
-
 
     /**
      * @return Collection<int, Auteur>
@@ -111,7 +108,6 @@ class Livre
     public function removeAuteur(Auteur $auteur): static
     {
         $this->auteurs->removeElement($auteur);
-
         return $this;
     }
 
@@ -136,7 +132,6 @@ class Livre
     public function removeEmprunt(Emprunt $emprunt): static
     {
         if ($this->emprunts->removeElement($emprunt)) {
-            // set the owning side to null (unless already changed)
             if ($emprunt->getLivre() === $this) {
                 $emprunt->setLivre(null);
             }
