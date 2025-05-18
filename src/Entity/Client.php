@@ -19,15 +19,15 @@ class Client
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['client:read', 'client:write'])]
+    #[Groups(['client:read', 'client:write', 'emprunt:read'])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['client:read', 'client:write'])]
+    #[Groups(['client:read', 'client:write', 'emprunt:read'])]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['client:read', 'client:write'])]
+    #[Groups(['client:read', 'client:write', 'emprunt:read'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 10)]

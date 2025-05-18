@@ -22,7 +22,7 @@ final class AuteurController extends AbstractController
     #[Route('/{id}', name: 'auteurs_show', requirements: ['id' => '\d+'], methods: ['GET'])]  //requirements: ['id' => '\d+'] permet de s'assurer que l'id passé
     public function show(int $id, EntityManagerInterface $entityManager): JsonResponse        // est un nombre entier (positif)
     {
-        $auteur = $entityManager->getRepository(\App\Entity\auteur::class)->find($id);
+        $auteur = $entityManager->getRepository(\App\Entity\Auteur::class)->find($id);
         if (!$auteur) {
             return $this->json([
                 'erreur' => 'Aucun auteur avec cet ID dans la bibliothèque.'], 404);
@@ -85,7 +85,7 @@ final class AuteurController extends AbstractController
             return $this->json(['errors' => $errors], 400);
         }
 
-        $auteur = new auteur();
+        $auteur = new Auteur();
         $auteur->setNom($nom);
         $auteur->setPrenom($prenom);
         $auteur->setDateNaissance($parsedDateNaissance);
@@ -117,11 +117,11 @@ final class AuteurController extends AbstractController
 
         // Application conditionnelle des modifications
         if ($nom !== null) {
-            $auteur->setTitre($nom);
+            $auteur->setNom($nom);
         }
 
         if ($prenom !== null) {
-            $auteur->setIsbn($prenom);
+            $auteur->setPrenom($prenom);
         }
 
         if ($dateNaissance !== null) {

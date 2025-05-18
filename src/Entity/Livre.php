@@ -19,7 +19,7 @@ class Livre
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['livre:read', 'livre:write'])]
+    #[Groups(['livre:read', 'livre:write', 'auteur:read'])]
     private ?string $titre = null;
 
     #[ORM\Column(length: 255)]
@@ -41,7 +41,6 @@ class Livre
      * @var Collection<int, Emprunt>
      */
     #[ORM\OneToMany(targetEntity: Emprunt::class, mappedBy: 'livre')]
-    #[Groups(['livre:read'])]
     private Collection $emprunts;
 
     public function __construct()

@@ -15,31 +15,29 @@ class Auteur
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['auteur:read'])]
+    #[Groups(['auteur:read', 'livre:read'])] // 👈 ajout ici
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['auteur:read', 'auteur:write'])]
+    #[Groups(['auteur:read', 'auteur:write', 'livre:read'])] // 👈 ajout
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['auteur:read', 'auteur:write'])]
+    #[Groups(['auteur:read', 'auteur:write', 'livre:read'])] // 👈 ajout
     private ?string $prenom = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
-    #[Groups(['auteur:read', 'auteur:write'])]
+    #[Groups(['auteur:read', 'auteur:write'])] // facultatif de l'ajouter dans livre:read
     private ?\DateTime $date_naissance = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    #[Groups(['auteur:read', 'auteur:write'])]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Groups(['auteur:read', 'auteur:write'])] // facultatif
     private ?\DateTime $date_mort = null;
 
-    /**
-     * @var Collection<int, Livre>
-     */
     #[ORM\ManyToMany(targetEntity: Livre::class, mappedBy: 'auteurs')]
     #[Groups(['auteur:read', 'auteur:write'])]
     private Collection $livres;
+
 
     public function __construct()
     {
