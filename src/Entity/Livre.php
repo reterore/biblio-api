@@ -19,11 +19,11 @@ class Livre
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['livre:read', 'livre:write', 'auteur:read', "client:read"])]
+    #[Groups(['livre:read', 'livre:write', 'auteur:read', "client:read", "emprunt:read"])]
     private ?string $titre = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['livre:read', 'livre:write'])]
+    #[Groups(['livre:read', 'livre:write', "emprunt:read"])]
     private ?string $isbn = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
