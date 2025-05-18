@@ -189,12 +189,11 @@ final class LivreController extends AbstractController
     {
         $titre = $request->query->get('titre');
         $isbn = $request->query->get('isbn');
-        $auteurId = $request->query->get('auteur_id');
+        $auteurNom = $request->query->get('auteur'); // nom ou prénom dans auteur pour la recherche (pas les 2)
         $genreId = $request->query->get('genre_id');
 
         $qb = $em->getRepository(Livre::class)->createQueryBuilder('l');
 
-        // Recherche insensible à la casse sur le titre
         if ($titre !== null) {
             $qb->andWhere('LOWER(l.titre) LIKE LOWER(:titre)')
                 ->setParameter('titre', '%' . $titre . '%');
@@ -205,13 +204,10 @@ final class LivreController extends AbstractController
                 ->setParameter('isbn', $isbn);
         }
 
-        if ($auteurId !== null) {
-            if (!is_numeric($auteurId)) {
-                return $this->json(['error' => 'auteur_id doit être un entier.'], 400);
-            }
+        if ($auteurNom !== null) {
             $qb->join('l.auteurs', 'a')
-                ->andWhere('a.id = :auteurId')
-                ->setParameter('auteurId', $auteurId);
+                ->andWhere('LOWER(a.nom) LIKE LOWER(:auteurNom) OR LOWER(a.prenom) LIKE LOWER(:auteurNom)')
+                ->setParameter('auteurNom', '%' . $auteurNom . '%');
         }
 
         if ($genreId !== null) {
