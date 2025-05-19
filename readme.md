@@ -10,9 +10,13 @@
 - curl.exe -X PUT "http://localhost:8000/livres/1?titre=1984+-+Édition+révisée&isbn=9780451524935&date_parution=1950-01-01&auteur_id=1"
 - curl.exe -X DELETE http://localhost:8000/livres/1
 - curl.exe -X DELETE http://localhost:8000/livres/3
-- curl.exe "http://localhost:8000/livres/search?auteur_id=1"
+- curl.exe "http://localhost:8000/livres/search?auteur=tolkien"
 - curl.exe "http://localhost:8000/livres/search?titre=harr"
 - curl.exe "http://localhost:8000/livres/search?isbn=1234"
+- curl.exe -X POST "http://localhost:8000/livres/2/emprunter/1"
+- curl.exe -X POST "http://localhost:8000/livres/2/rendre"
+
+
 
 ## auteur
 
