@@ -9,27 +9,67 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/livres')]
 final class LivreController extends AbstractController
 {
-    #[Route('', name: 'livres_index', methods: ['GET'])]
-    public function index(LivreRepository $livreRepository): JsonResponse
+    // client HTTP pour appeler des APIs externes, et le serializer qui transforme les objets PHP en JSON
+    private HttpClientInterface $client;
+    private SerializerInterface $serializer;
+
+    // Constructeur pour HttpClient et Serializer
+    public function __construct(HttpClientInterface $client, SerializerInterface $serializer)
     {
-        return $this->json($livreRepository->findAll(), 200, [], ['groups' => 'livre:read']);
+        $this->client = $client;
+        $this->serializer = $serializer;
     }
 
-    #[Route('/{id}', name: 'livres_show', requirements: ['id' => '\d+'], methods: ['GET'])]  //requirements: ['id' => '\d+'] permet de s'assurer que l'id passer
-    public function show(int $id, EntityManagerInterface $entityManager): JsonResponse       // est un nombre entier positif.
+    #[Route('/{id}', name: 'livres_show', requirements: ['id' => '\\d+'], methods: ['GET'])]
+    public function show(Request $request, int $id, EntityManagerInterface $em): JsonResponse
     {
-        $livre = $entityManager->getRepository(\App\Entity\Livre::class)->find($id);
+        $livre = $em->getRepository(Livre::class)->find($id);
+
         if (!$livre) {
             return $this->json([
                 'erreur' => 'Aucun livre avec cet ID dans la bibliothèque.'
-            ], 404); // Code correct mais réponse propre
+            ], 404);
         }
-        return $this->json($livre, 200, [], ['groups' => 'livre:read']);
+
+        // serialisation du livre en tableau associatif
+        $data = $this->serializer->normalize($livre, null, ['groups' => 'livre:read']);
+
+        //utilisation de l’API OpenLibrary
+        if ($livre->getIsbn()) {
+            try {
+                // Requête GET vers OpenLibrary API pour chercher par ISBN
+                $response = $this->client->request('GET', 'https://openlibrary.org/api/books', [
+                    'query' => [
+                        'bibkeys' => 'ISBN:' . $livre->getIsbn(),  // clé ISBN au format attendu
+                        'format' => 'json',                        // réponse en JSON
+                        'jscmd' => 'data',                         // je demande les données "enrichies"
+                    ],
+                ]);
+
+                // On transforme la réponse JSON en tableau PHP
+                $externalData = $response->toArray(false);
+                $key = 'ISBN:' . $livre->getIsbn();
+
+                // On extrait le nombre de pages si disponible, sinon 'inconnu'
+                $data['nombre_pages'] = $externalData[$key]['number_of_pages'] ?? 'inconnu';
+
+            } catch (\Throwable $e) {
+                // En cas d'erreur (timeout, mauvais format, etc.), on remplit avec la valeur par défaut
+                $data['nombre_pages'] = 'Non disponible';
+            }
+        }
+        return new JsonResponse($data);
     }
+
+
+
+
 
     #[Route('/create', name: 'livres_create', methods: ['GET'])]
     public function create(
