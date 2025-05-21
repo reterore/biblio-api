@@ -5,7 +5,7 @@
 - curl.exe -X GET "http://localhost:8000/livres"
 - curl.exe -X GET "http://localhost:8000/livres/1"
 - curl.exe -X GET "http://localhost:8000/livres/create?isbn=9780451524935&date_parution=1949-06-08&auteur_id=3"
-- curl.exe -X GET "http://localhost:8000/livres/create?titre=1984&isbn=9780451524935&date_parution=1949-06-08&auteur_id=1"
+- curl.exe -X GET "http://localhost:8000/livres/create?titre=1984&isbn=9780451524935&date_parution=1949-06-08&auteur_id=1&genre_id=2"
 - curl.exe -X PUT "http://localhost:8000/livres/1?titre=1984+-+Édition+révisée&isbn=9780451524935&date_parution=1950-01-01&auteur_id=1"
 - curl.exe -X PUT "http://localhost:8000/livres/1?titre=1984+-+Édition+révisée&isbn=9780451524935&date_parution=1950-01-01&auteur_id=1"
 - curl.exe -X DELETE http://localhost:8000/livres/1
@@ -27,7 +27,7 @@
 - curl.exe -X GET "http://localhost:8000/auteurs/create?nom=Rowling&prenom=J.K.&date_naissance=1965-07-31"
 - curl.exe -X PUT "http://localhost:8000/auteurs/1?titre=John+Tolkien&date_mort=1973-09-03"
 - curl.exe -X DELETE "http://localhost:8000/auteurs/1"
-- curl.exe -X DELETE "http://localhost:8000/auteurs/2"
+- curl.exe -X DELETE "http://localhost:8000/auteurs/8"
 - curl.exe "http://localhost:8000/auteurs/search?nom=tolk"
 - curl.exe "http://localhost:8000/auteurs/search?prenom=j.k."
 - curl.exe "http://localhost:8000/auteurs/search?date_naissance=1965-07-31"
@@ -44,7 +44,7 @@
 - curl.exe "http://localhost:8000/clients/search?nom=Durand"
 - curl.exe "http://localhost:8000/clients/search?adresse=Lyon"
 - curl.exe "http://localhost:8000/clients/search?adresse=Belfort"
-- possibilité de créer 2 nouveau clients et de les rechercher via la date du jour pour vérifier que les 2 apparaissent
+- possibilité de créer 1 nouveau clients et de le rechercher via la date du jour pour vérifier qu'il apparait
 
 ## emprunts
 
@@ -55,3 +55,5 @@
 - curl.exe -X GET "http://localhost:8000/emprunts/create?client_id=1&livre_id=1&date_emprunt=2024-05-20&date_limite_retour=2024-06-20"
 - curl.exe -X DELETE "http://localhost:8000/emprunts/3"
 - curl.exe -X DELETE "http://localhost:8000/emprunts/77"
+- curl.exe "http://localhost:8000/emprunts/search?en_cours=true"
+- curl.exe "http://localhost:8000/emprunts/search?en_cours=false"

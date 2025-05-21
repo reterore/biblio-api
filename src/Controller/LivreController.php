@@ -424,4 +424,31 @@ final class LivreController extends AbstractController
             }
         }
     }
+    #[Route('/disponibles', name: 'livres_disponibles', methods: ['GET'])]
+    public function disponibles(EntityManagerInterface $em): JsonResponse
+    {
+        // Sous-requête : identifie les IDs des livres actuellement empruntés et non rendus
+        $empruntsActifs = $em->getRepository(\App\Entity\Emprunt::class)
+            ->createQueryBuilder('e')
+            ->select('IDENTITY(e.livre)')
+            ->where('e.date_retour IS NULL')
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        // Récupère tous les livres qui ne sont pas actuellement empruntés
+        $qb = $em->getRepository(Livre::class)->createQueryBuilder('l');
+        if (!empty($empruntsActifs)) {
+            $qb->where($qb->expr()->notIn('l.id', ':ids'))
+                ->setParameter('ids', $empruntsActifs);
+        }
+
+        $livresDisponibles = $qb->getQuery()->getResult();
+
+        if (empty($livresDisponibles)) {
+            return $this->json(['message' => 'Aucun livre disponible pour le moment.'], 404);
+        }
+
+        return $this->json($livresDisponibles, 200, [], ['groups' => 'livre:read']);
+    }
+
 }

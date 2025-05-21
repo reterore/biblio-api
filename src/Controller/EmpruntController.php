@@ -211,6 +211,4 @@ final class EmpruntController extends AbstractController
 
         return $this->json($results, 200, [], ['groups' => 'emprunt:read']);
     }
-
-
 }
