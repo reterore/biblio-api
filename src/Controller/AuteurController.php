@@ -142,7 +142,6 @@ final class AuteurController extends AbstractController
             }
         }
 
-        // En cas d’erreurs
         if (count($errors) > 0) {
             return $this->json(['erreurs' => $errors], 400);
         }
@@ -217,6 +216,4 @@ final class AuteurController extends AbstractController
 
         return $this->json($auteurs, 200, [], ['groups' => 'auteur:read']);
     }
-
-
 }

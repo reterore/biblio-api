@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : lun. 19 mai 2025 à 15:38
+-- Généré le : mer. 21 mai 2025 à 21:41
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -35,14 +35,6 @@ CREATE TABLE `auteur` (
                           `date_mort` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Déchargement des données de la table `auteur`
---
-
-INSERT INTO `auteur` (`id`, `nom`, `prenom`, `date_naissance`, `date_mort`) VALUES
-                                                                                (1, 'Tolkien', 'J.R.R.', '1892-01-03', '1973-09-02'),
-                                                                                (2, 'Rowling', 'J.K.', '1965-07-31', NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -60,14 +52,6 @@ CREATE TABLE `client` (
                           `date_naissance` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Déchargement des données de la table `client`
---
-
-INSERT INTO `client` (`id`, `nom`, `prenom`, `email`, `tel`, `adresse`, `date_inscription`, `date_naissance`) VALUES
-                                                                                                                  (1, 'Durand', 'Alice', 'alice.durand@example.com', '0601020304', '12 rue des Lilas, Paris', '2023-01-15', '1990-06-25'),
-                                                                                                                  (2, 'Martin', 'Bob', 'bob.martin@example.com', '0604050607', '34 avenue Victor Hugo, Lyon', '2023-02-20', '1985-03-10');
-
 -- --------------------------------------------------------
 
 --
@@ -83,15 +67,6 @@ CREATE TABLE `emprunt` (
                            `date_retour` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Déchargement des données de la table `emprunt`
---
-
-INSERT INTO `emprunt` (`id`, `client_id`, `livre_id`, `date_emprunt`, `date_limite_retour`, `date_retour`) VALUES
-                                                                                                               (1, 1, 1, '2024-05-01', '2024-05-31', NULL),
-                                                                                                               (2, 2, 2, '2024-04-20', '2024-05-20', '2024-05-10'),
-                                                                                                               (3, 1, 2, '2025-05-18', '2025-05-18', '2025-05-18');
-
 -- --------------------------------------------------------
 
 --
@@ -102,16 +77,6 @@ CREATE TABLE `genre` (
                          `id` int(11) NOT NULL,
                          `nom` varchar(32) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Déchargement des données de la table `genre`
---
-
-INSERT INTO `genre` (`id`, `nom`) VALUES
-                                      (1, 'Fantasy'),
-                                      (2, 'Aventure'),
-                                      (3, 'Science-fiction'),
-                                      (4, 'Jeunesse');
 
 -- --------------------------------------------------------
 
@@ -127,15 +92,6 @@ CREATE TABLE `livre` (
                          `date_parution` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Déchargement des données de la table `livre`
---
-
-INSERT INTO `livre` (`id`, `genre_id`, `titre`, `isbn`, `date_parution`) VALUES
-                                                                             (1, 1, 'Le Seigneur des Anneaux', '9782070612884', '1964-07-29'),
-                                                                             (2, 4, 'Harry Potter et la coupe de feu', '9780747532748', '1999-05-16'),
-                                                                             (3, 3, 'Dune', '9781234567897', '1965-06-01');
-
 -- --------------------------------------------------------
 
 --
@@ -146,15 +102,6 @@ CREATE TABLE `livre_auteur` (
                                 `livre_id` int(11) NOT NULL,
                                 `auteur_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Déchargement des données de la table `livre_auteur`
---
-
-INSERT INTO `livre_auteur` (`livre_id`, `auteur_id`) VALUES
-                                                         (1, 1),
-                                                         (2, 2),
-                                                         (3, 1);
 
 -- --------------------------------------------------------
 
@@ -234,31 +181,31 @@ ALTER TABLE `messenger_messages`
 -- AUTO_INCREMENT pour la table `auteur`
 --
 ALTER TABLE `auteur`
-    MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+    MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `client`
 --
 ALTER TABLE `client`
-    MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+    MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `emprunt`
 --
 ALTER TABLE `emprunt`
-    MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+    MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `genre`
 --
 ALTER TABLE `genre`
-    MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+    MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `livre`
 --
 ALTER TABLE `livre`
-    MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+    MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `messenger_messages`

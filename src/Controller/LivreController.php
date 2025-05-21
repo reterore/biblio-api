@@ -29,81 +29,120 @@ final class LivreController extends AbstractController
     #[Route('', name: 'livres_index', methods: ['GET'])]
     public function index(EntityManagerInterface $em): JsonResponse
     {
+        // Récupère tous les livres de la base de données
         $livres = $em->getRepository(Livre::class)->findAll();
         $results = [];
 
         foreach ($livres as $livre) {
+            // Sérialise l'entité Livre en tableau selon le groupe 'livre:read'
             $data = $this->serializer->normalize($livre, null, ['groups' => 'livre:read']);
 
-            if ($livre->getIsbn()) {
+
+            /*
+               normalize(
+               $object,              // L’objet PHP à transformer
+               string|null $format,  // Format cible (ici: null = tableau PHP)
+               array $context = []   // groupes de sérialisation
+                )
+             */
+
+            // Vérifie si un ISBN est présent pour le livre
+            $isbn = $livre->getIsbn();
+
+            if ($isbn) {
+                $isbnKey = 'ISBN:' . $isbn;
+
                 try {
+                    // Requête GET vers OpenLibrary API pour chercher avec ISBN
                     $response = $this->client->request('GET', 'https://openlibrary.org/api/books', [
                         'query' => [
-                            'bibkeys' => 'ISBN:' . $livre->getIsbn(),
-                            'format' => 'json',
-                            'jscmd' => 'data',
+                            'bibkeys' => $isbnKey,    // clé ISBN au format attendu par l'API
+                            'format' => 'json',       // réponse en JSON
+                            'jscmd' => 'data',        // données enrichies (titre, nb pages, etc.)
                         ],
-                        'timeout' => 5.0,
+                        'timeout' => 2.5,
                     ]);
 
-                    $externalData = $response->toArray(false);
-                    $key = 'ISBN:' . $livre->getIsbn();
-                    $data['nombre_pages'] = $externalData[$key]['number_of_pages'] ?? 'inconnu';
+                    // Si réponse HTTP 200, on parse et on récupère les données
+                    if ($response->getStatusCode() === 200) {
+                        $externalData = $response->toArray(false);
 
-                } catch (\Throwable $e) {
+                        // Extrait le nombre de pages si disponible, sinon 'inconnu'
+                        $data['nombre_pages'] = $externalData[$isbnKey]['number_of_pages'] ?? 'inconnu';
+                    } else {
+                        // Réponse HTTP invalide => valeur par défaut
+                        $data['nombre_pages'] = 'Non disponible';
+                    }
+
+                } catch (\Throwable) {
+                    // En cas d’erreur réseau ou parsing JSON => valeur par défaut
                     $data['nombre_pages'] = 'Non disponible';
                 }
+            } else {
+                // Aucun ISBN donc pas de requête vers l'API
+                $data['nombre_pages'] = 'Non disponible';
             }
 
+            // Ajoute le livre enrichi au tableau de résultats
             $results[] = $data;
         }
 
+        // Retourne la liste complète des livres au format JSON
         return new JsonResponse($results);
     }
+
 
     #[Route('/{id}', name: 'livres_show', requirements: ['id' => '\\d+'], methods: ['GET'])]
     public function show(Request $request, int $id, EntityManagerInterface $em): JsonResponse
     {
+        // Récupère un livre par son identifiant
         $livre = $em->getRepository(Livre::class)->find($id);
 
         if (!$livre) {
+            // Si aucun livre ne correspond à l'ID, retourne une erreur 404
             return $this->json([
                 'erreur' => 'Aucun livre avec cet ID dans la bibliothèque.'
             ], 404);
         }
 
-        // serialisation du livre en tableau associatif
+        // Sérialisation de l'entité Livre en tableau associatif
         $data = $this->serializer->normalize($livre, null, ['groups' => 'livre:read']);
 
-        //utilisation de l’API OpenLibrary
+        // Vérifie si un ISBN est présent pour ce livre
         if ($livre->getIsbn()) {
+            $isbnKey = 'ISBN:' . $livre->getIsbn();
+
             try {
-                // Requête GET vers OpenLibrary API pour chercher par ISBN
+                // Requête GET vers OpenLibrary API pour enrichir le livre
                 $response = $this->client->request('GET', 'https://openlibrary.org/api/books', [
                     'query' => [
-                        'bibkeys' => 'ISBN:' . $livre->getIsbn(),  // clé ISBN au format attendu
-                        'format' => 'json',                        // réponse en JSON
-                        'jscmd' => 'data',                         // je demande les données "enrichies"
+                        'bibkeys' => $isbnKey,
+                        'format' => 'json',
+                        'jscmd' => 'data',
                     ],
+                    'timeout' => 2.5,
                 ]);
 
-                // On transforme la réponse JSON en tableau PHP
-                $externalData = $response->toArray(false);
-                $key = 'ISBN:' . $livre->getIsbn();
+                // Récupère les données si la réponse est correcte
+                if ($response->getStatusCode() === 200) {
+                    $externalData = $response->toArray(false);
+                    $data['nombre_pages'] = $externalData[$isbnKey]['number_of_pages'] ?? 'inconnu';
+                } else {
+                    $data['nombre_pages'] = 'Non disponible';
+                }
 
-                // On extrait le nombre de pages si disponible, sinon 'inconnu'
-                $data['nombre_pages'] = $externalData[$key]['number_of_pages'] ?? 'inconnu';
-
-            } catch (\Throwable $e) {
-                // En cas d'erreur (timeout, mauvais format, etc.), on remplit avec la valeur par défaut
+            } catch (\Throwable) {
+                // En cas d’erreur réseau/parsing JSON => valeur par défaut
                 $data['nombre_pages'] = 'Non disponible';
             }
+        } else {
+            // Aucun ISBN => pas de requête API
+            $data['nombre_pages'] = 'Non disponible';
         }
+
+        // Retourne le livre enrichi au format JSON
         return new JsonResponse($data);
     }
-
-
-
 
 
     #[Route('/create', name: 'livres_create', methods: ['GET'])]
@@ -192,7 +231,7 @@ final class LivreController extends AbstractController
 
         // Si aucun paramètre n’est fourni, on retourne simplement le livre tel quel
         if ($titre === null && $isbn === null && $dateParutionStr === null && $auteurId === null && $genreId === null) {
-            return $this->json($livre, 200, [], ['groups' => 'livre:read']);
+            return $this->json($livre, 204, [], ['groups' => 'livre:read']);
         }
 
         if ($titre !== null) {
