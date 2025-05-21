@@ -26,6 +26,41 @@ final class LivreController extends AbstractController
         $this->serializer = $serializer;
     }
 
+    #[Route('', name: 'livres_index', methods: ['GET'])]
+    public function index(EntityManagerInterface $em): JsonResponse
+    {
+        $livres = $em->getRepository(Livre::class)->findAll();
+        $results = [];
+
+        foreach ($livres as $livre) {
+            $data = $this->serializer->normalize($livre, null, ['groups' => 'livre:read']);
+
+            if ($livre->getIsbn()) {
+                try {
+                    $response = $this->client->request('GET', 'https://openlibrary.org/api/books', [
+                        'query' => [
+                            'bibkeys' => 'ISBN:' . $livre->getIsbn(),
+                            'format' => 'json',
+                            'jscmd' => 'data',
+                        ],
+                        'timeout' => 5.0,
+                    ]);
+
+                    $externalData = $response->toArray(false);
+                    $key = 'ISBN:' . $livre->getIsbn();
+                    $data['nombre_pages'] = $externalData[$key]['number_of_pages'] ?? 'inconnu';
+
+                } catch (\Throwable $e) {
+                    $data['nombre_pages'] = 'Non disponible';
+                }
+            }
+
+            $results[] = $data;
+        }
+
+        return new JsonResponse($results);
+    }
+
     #[Route('/{id}', name: 'livres_show', requirements: ['id' => '\\d+'], methods: ['GET'])]
     public function show(Request $request, int $id, EntityManagerInterface $em): JsonResponse
     {
