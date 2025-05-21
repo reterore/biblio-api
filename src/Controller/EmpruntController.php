@@ -186,15 +186,37 @@ final class EmpruntController extends AbstractController
         $clientId = $request->query->get('client_id');
         $livreId = $request->query->get('livre_id') ?? $request->query->get('id_livre');
         $enCours = $request->query->get('en_cours'); // "true" ou "false"
+        $nomClient = $request->query->get('nom_client');
+        $prenomClient = $request->query->get('prenom_client');
+        $titreLivre = $request->query->get('titre_livre');
 
-        $qb = $em->getRepository(Emprunt::class)->createQueryBuilder('e');
+        $qb = $em->getRepository(Emprunt::class)->createQueryBuilder('e')
+            ->leftJoin('e.client', 'c')
+            ->leftJoin('e.livre', 'l');
 
         if ($clientId !== null) {
-            $qb->andWhere('e.client = :client')->setParameter('client', $clientId);
+            $qb->andWhere('c.id = :clientId')
+                ->setParameter('clientId', $clientId);
         }
 
         if ($livreId !== null) {
-            $qb->andWhere('e.livre = :livre')->setParameter('livre', $livreId);
+            $qb->andWhere('l.id = :livreId')
+                ->setParameter('livreId', $livreId);
+        }
+
+        if (!empty($nomClient)) {
+            $qb->andWhere('LOWER(c.nom) LIKE :nomClient')
+                ->setParameter('nomClient', '%' . strtolower($nomClient) . '%');
+        }
+
+        if (!empty($prenomClient)) {
+            $qb->andWhere('LOWER(c.prenom) LIKE :prenomClient')
+                ->setParameter('prenomClient', '%' . strtolower($prenomClient) . '%');
+        }
+
+        if (!empty($titreLivre)) {
+            $qb->andWhere('LOWER(l.titre) LIKE :titreLivre')
+                ->setParameter('titreLivre', '%' . strtolower($titreLivre) . '%');
         }
 
         if ($enCours === 'true') {
@@ -206,9 +228,10 @@ final class EmpruntController extends AbstractController
         $results = $qb->getQuery()->getResult();
 
         if (empty($results)) {
-            return $this->json(['message' => 'rien ne correspondant a votre recherche.'], 404);
+            return $this->json(['message' => 'Rien ne correspond à votre recherche.'], 404);
         }
 
         return $this->json($results, 200, [], ['groups' => 'emprunt:read']);
     }
+
 }
