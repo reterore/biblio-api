@@ -127,17 +127,24 @@ final class LivreController extends AbstractController
                 if ($response->getStatusCode() === 200) {
                     $externalData = $response->toArray(false);
                     $data['nombre_pages'] = $externalData[$isbnKey]['number_of_pages'] ?? 'inconnu';
+                    $data['image_couverture'] = $externalData[$isbnKey]['cover']['large']
+                        ?? $externalData[$isbnKey]['cover']['medium']
+                        ?? $externalData[$isbnKey]['cover']['small']
+                        ?? null;
                 } else {
                     $data['nombre_pages'] = 'Non disponible';
+                    $data['image_couverture'] = 'Non disponible';
                 }
 
             } catch (\Throwable) {
                 // En cas d’erreur réseau/parsing JSON => valeur par défaut
                 $data['nombre_pages'] = 'Non disponible';
+                $data['image_couverture'] = 'Non disponible';
             }
         } else {
             // Aucun ISBN => pas de requête API
             $data['nombre_pages'] = 'Non disponible';
+            $data['image_couverture'] = 'Non disponible';
         }
 
         // Retourne le livre enrichi au format JSON
