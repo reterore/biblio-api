@@ -46,7 +46,6 @@ final class LivreController extends AbstractController
                 )
              */
 
-            // Vérifie si un ISBN est présent pour le livre
             $isbn = $livre->getIsbn();
 
             if ($isbn) {
@@ -58,7 +57,7 @@ final class LivreController extends AbstractController
                         'query' => [
                             'bibkeys' => $isbnKey,    // clé ISBN au format attendu par l'API
                             'format' => 'json',       // réponse en JSON
-                            'jscmd' => 'data',        // données enrichies (titre, nb pages, etc.)
+                            'jscmd' => 'data',        // données enrichies (titre, nb pages)
                         ],
                         'timeout' => 2.5,
                     ]);
@@ -70,7 +69,6 @@ final class LivreController extends AbstractController
                         // Extrait le nombre de pages si disponible, sinon 'inconnu'
                         $data['nombre_pages'] = $externalData[$isbnKey]['number_of_pages'] ?? 'inconnu';
                     } else {
-                        // Réponse HTTP invalide => valeur par défaut
                         $data['nombre_pages'] = 'Non disponible';
                     }
 
@@ -79,15 +77,12 @@ final class LivreController extends AbstractController
                     $data['nombre_pages'] = 'Non disponible';
                 }
             } else {
-                // Aucun ISBN donc pas de requête vers l'API
                 $data['nombre_pages'] = 'Non disponible';
             }
 
-            // Ajoute le livre enrichi au tableau de résultats
             $results[] = $data;
         }
 
-        // Retourne la liste complète des livres au format JSON
         return new JsonResponse($results);
     }
 
