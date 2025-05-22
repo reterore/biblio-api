@@ -50,6 +50,11 @@ symfony new biblio-api --webapp
 - `genres` : table de référence pour classer les livres
 
 
+- MCD:
+  ![MCD](/img/MCD_db.png)
+
+- MLD:
+  ![MLD](/img/MLD_db.png)
 
 ---
 
