@@ -1,216 +1,59 @@
-#  Biblio-API
-
-##  Objectif du projet
-
-J’ai choisi de ne pas utiliser API Platform, malgré sa rapidité d’implémentation, car le but de ce projet était de tester mon niveau et de garder la maîtrise complète de chaque étape de la création d’une API REST avec Symfony.
-
----
-
-##  Commande d’installation
-
-```bash
-symfony new biblio-api --webapp
-```
-
-> Cette commande installe la distribution complète de Symfony, incluant beaucoup plus que nécessaire pour une API REST simple.
-
----
-
-## Composants symfony utilisés dans le projet
-
-| Composant               | Raison de l'utiliser                                  |
-|------------------------|--------------------------------------------------------|
-| `framework-bundle`     | Base indispensable de Symfony                         |
-| `routing`              | Définir les endpoints REST manuellement               |
-| `maker-bundle`         | Générer entités, contrôleurs                          |
-| `orm-pack`             | Manipulation des entités Doctrine                     |
-| `validator`            | Validation des données entrantes                      |
-| `serializer`           | Sérialisation / désérialisation JSON ↔ PHP            |
-| `http-client`          | Appel API externe (Google Books)                      |
-| `test-pack`            | Création de tests unitaires et fonctionnels           |
-
----
-
-##  Base de données
-
-- Utilisation de **MySQL** :
-    - Parce que je le connais bien
-    - adapté à la structure de ce projet
-    - Utilisation de clés étrangères pour assurer l'intégrité des données
-
-### Tables requises :
-
-- `livres`
-- `auteurs`
-- `emprunts`
-
-### Tables ajoutées :
-
-- `clients` : pour associer les emprunts
-- `genres` : table de référence pour classer les livres
-
----
-
-## Modélisation
-
-### MCD (Modèle Conceptuel de Données)
-> *(Diagramme UML non inclus ici)*
-
-### MLD (Modèle Logique de Données)
-- 5 tables au total
-- 2 tables de liaison (`emprunts`, `livres_genres`)
-
----
-
-## Connexion de la base de données
-
-1. Modifier `.env` :
-   ```env
-   DATABASE_URL="mysql://user:password@127.0.0.1:3306/biblio"
-   ```
-
-2. Créer les entités via Symfony CLI :
-
-- ex:
-   ```bash
-   php bin/console make:entity Livre
-   php bin/console make:entity Auteur
-   ```
-
-3. Appliquer les migrations :
-   ```bash
-   php bin/console doctrine:migrations:migrate
-   ```
-
----
-
-## Sérialisation manuelle
-
-Symfony ne sérialise pas les entités automatiquement. Il faut ajouter des annotations de groupes dans chaque entité :
-
-- ex:
-
-```php
-use Symfony\Component\Serializer\Annotation\Groups;
-
-#[Groups(['livre:read'])]
-private $title;
-```
-
-- `read` → pour les champs exposés dans les réponses `GET`
-- `write` → pour les champs acceptés en `POST` / `PUT`
-
-> Ces groupes permettent un bon contrôle sur ce qui est accessible en read ou en write via l’API (plus de sécurité).
-
----
-
-## CRUD avec Symfony
-
-1. Installer MakerBundle si besoin :
-   ```bash
-   composer require symfony/maker-bundle --dev
-   ```
-
-2. Générer les CRUDs :
-   ```bash
-   php bin/console make:crud Livre
-   ```
-
-> Les CRUDs générés respectent automatiquement les conventions Symfony.
->
-> Cependant je ne les ai pas utilisés pour mon projet car je voulais faire par moi même pour avoir plus de contrôle
-> sur mes endpoints et pouvoir mieux debugué.
-
-
----
-
-## Améliorations futures possibles
-
-- Ajouter une authentification (JWT ou token)
-- Ajouter des indexes dans la base pour optimiser les recherches (titre, disponibilité, etc.)
--
-
----
-
-## Endpoints de l’API
-
-### Endpoints de l'entité **Livre**
-
-| Méthode | Endpoint                                       | Description                                |
-|---------|------------------------------------------------|--------------------------------------------|
-| GET     | `/livres`                                      | Liste tous les livres                      |
-| GET     | `/livres/{id}`                                 | Affiche un livre par ID                    |
-| GET     | `/livres/create`                               | Crée un livre         |
-| PUT     | `/livres/{id}`                                 | Met à jour un livre                        |
-| DELETE  | `/livres/{id}`                                 | Supprime un livre                          |
-| GET     | `/livres/search`                               | Recherche par titre, auteur, genre         |
-| POST    | `/livres/{livreId}/emprunter/{clientId}`       | Emprunt d’un livre                         |
-| POST    | `/livres/{livreId}/rendre`                     | Rendre un livre                            |
-| GET     | `/livres/disponibles`                          | Liste des livres actuellement disponibles  |
-
-### Endpoints de l'entité **Auteur**
-
-| Méthode | Endpoint                                 | Description                                    |
-|---------|------------------------------------------|------------------------------------------------|
-| GET     | `/auteurs`                               | Liste tous les auteurs                         |
-| GET     | `/auteurs/{id}`                          | Affiche un auteur par ID                       |
-| GET     | `/auteurs/create`                        | Crée un nouvel auteur                          |
-| PUT     | `/auteurs/{id}`                          | Met à jour un auteur                           |
-| DELETE  | `/auteurs/{id}`                          | Supprime un auteur                             |
-| GET     | `/auteurs/search`                        | Recherche d’auteurs (nom, prénom, date, livre) |
-
-### Endpoints de l'entité **Client**
-
-| Méthode | Endpoint                         | Description                                          |
-|---------|----------------------------------|------------------------------------------------------|
-| GET     | `/clients`                       | Liste tous les clients                              |
-| GET     | `/clients/{id}`                  | Affiche un client par ID                            |
-| GET     | `/clients/create`                | Crée un nouveau client       |
-| PUT     | `/clients/{id}`                  | Met à jour un client (tout champ modifiable)        |
-| DELETE  | `/clients/{id}`                  | Supprime un client par son ID                       |
-| GET     | `/clients/search`                | Recherche de clients selon plusieurs critères       |
-
-
-### Endpoints de l'entité **Emprunt**
-
-| Méthode | Endpoint                             | Description                                            |
-|---------|--------------------------------------|--------------------------------------------------------|
-| GET     | `/emprunts`                          | Liste tous les emprunts                               |
-| GET     | `/emprunts/{id}`                     | Affiche un emprunt par ID                             |
-| GET     | `/emprunts/create`                   | Crée un nouvel emprunt (client, livre, date optionnelle) |
-| PUT     | `/emprunts/{id}`                     | Met à jour un emprunt (retour, client, livre, etc.)   |
-| DELETE  | `/emprunts/{id}`                     | Supprime un emprunt par son ID                        |
-| GET     | `/emprunts/search`                   | Recherche d'emprunts (client, livre, en cours, etc.)  |
-
----
-
-## Tests unitaires
-
-### Préparation
-
-- Activer les extensions `pdo_sqlite` et `sqlite3`
-- Ajouter un fichier `.env.test.local` avec :
-  ```env
-  DATABASE_URL="sqlite:///%kernel.project_dir%/var/data_test.sqlite"
-  ```
-
-### Création des tests
-
-- Créer un fichier `tests/LivreTest.php`
-- Ajouter des requêtes pour **tester tous les endpoints**
-
----
-
-## Appels asynchrones avec Messenger
-
-Pour mon projet j'ai uniquement fait appel à l'API pour enrichir le JSON de sortie. Cependant,
-il aurait été possible d'utilisé Messenger pour le faire de manière asynchrone (pas les mêmes
-notions de récurrences qu'avec JS). Ici on attends la réponse de la requête donc pas utile de
-faire la requête à l'API en arrière plan, mais peut être quand même interessant si on veut faire
-un create un peu complexe pour avoir accès au terminal pendant que la requête à l'API externe se
-poursuis.
-
-1. Créer un **message Symfony** (classe DTO)
-2. Créer un **handler** (`MessageHandlerInterface`)
-3. Appeler le message depuis `create()` ou `edit()` pour lancer des traitements asynchrones (ex. : enrichissement avec Google Books)
-
+# commande curl pour présenter l'API:
+
+## livre
+
+- curl.exe -X GET "http://localhost:8000/livres"
+- curl.exe -X GET "http://localhost:8000/livres/1"
+- curl.exe -X GET "http://localhost:8000/livres/create?isbn=9780451524935&date_parution=1949-06-08&auteur_id=3"
+- curl.exe -X GET "http://localhost:8000/livres/create?titre=1984&isbn=9780451524935&date_parution=1949-06-08&auteur_id=1&genre_id=2"
+- curl.exe -X PUT "http://localhost:8000/livres/1?titre=1984+-+Édition+révisée&isbn=9780451524935&date_parution=1950-01-01&auteur_id=1"
+- curl.exe -X PUT "http://localhost:8000/livres/1?titre=1984+-+Édition+révisée&isbn=9780451524935&date_parution=1950-01-01&auteur_id=1"
+- curl.exe -X DELETE http://localhost:8000/livres/1
+- curl.exe -X DELETE http://localhost:8000/livres/3
+- curl.exe "http://localhost:8000/livres/search?auteur=tolkien"
+- curl.exe "http://localhost:8000/livres/search?titre=harr"
+- curl.exe "http://localhost:8000/livres/search?isbn=1234"
+- curl.exe -X POST "http://localhost:8000/livres/2/emprunter/1"
+- curl.exe -X POST "http://localhost:8000/livres/2/rendre"
+
+
+
+## auteur
+
+- curl.exe -X GET "http://localhost:8000/auteurs"
+- curl.exe -X GET "http://localhost:8000/auteurs/1"
+- curl.exe -X GET "http://localhost:8000/auteurs/3"
+- curl.exe -X GET "http://localhost:8000/auteurs/create?nom=Tolkien&prenom=J.R.R.&date_naissance=1892-01-03&date_mort=1973-09-02"
+- curl.exe -X GET "http://localhost:8000/auteurs/create?nom=Rowling&prenom=J.K.&date_naissance=1965-07-31"
+- curl.exe -X PUT "http://localhost:8000/auteurs/1?titre=John+Tolkien&date_mort=1973-09-03"
+- curl.exe -X DELETE "http://localhost:8000/auteurs/1"
+- curl.exe -X DELETE "http://localhost:8000/auteurs/8"
+- curl.exe "http://localhost:8000/auteurs/search?nom=tolk"
+- curl.exe "http://localhost:8000/auteurs/search?prenom=j.k."
+- curl.exe "http://localhost:8000/auteurs/search?date_naissance=1965-07-31"
+- curl.exe "http://localhost:8000/auteurs/search?date_naissance=1900-05-31"
+
+## client
+
+- curl.exe -X GET "http://localhost:8000/clients"
+- curl.exe -X GET "http://localhost:8000/clients/create?nom=Durand&prenom=Alice&adresse=12%20rue%20des%20Lilas,%20Paris"
+- curl.exe -X GET "http://localhost:8000/clients/create?nom=Durand&prenom=Alice&email=alice.durand@example.com&tel=0000000000&adresse=12%20rue%20des%20Lilas%2C%20Paris&date_naissance=1990-06-25"
+- curl.exe -X PUT "http://localhost:8000/clients/1?email=alice.nouvel@example.com&tel=1111111111"
+- curl.exe -X DELETE "http://localhost:8000/clients/3"
+- curl.exe -X DELETE "http://localhost:8000/clients/10"
+- curl.exe "http://localhost:8000/clients/search?nom=Durand"
+- curl.exe "http://localhost:8000/clients/search?adresse=Lyon"
+- curl.exe "http://localhost:8000/clients/search?adresse=Belfort"
+- possibilité de créer 1 nouveau clients et de le rechercher via la date du jour pour vérifier qu'il apparait
+
+## emprunts
+
+- curl.exe -X GET "http://localhost:8000/emprunts"
+- curl.exe -X GET "http://localhost:8000/emprunts/1"
+- curl.exe -X GET "http://localhost:8000/emprunts/3"
+- curl.exe -X GET "http://localhost:8000/emprunts/create?client_id=1&livre_id=1&date_emprunt=2024-05-20"
+- curl.exe -X GET "http://localhost:8000/emprunts/create?client_id=1&livre_id=1&date_emprunt=2024-05-20&date_limite_retour=2024-06-20"
+- curl.exe -X DELETE "http://localhost:8000/emprunts/3"
+- curl.exe -X DELETE "http://localhost:8000/emprunts/77"
+- curl.exe "http://localhost:8000/emprunts/search?en_cours=true"
+- curl.exe "http://localhost:8000/emprunts/search?en_cours=false"
