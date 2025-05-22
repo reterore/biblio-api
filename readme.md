@@ -210,12 +210,12 @@ private $title;
 
 ## Appels asynchrones avec Messenger
 
-Pour mon projet j'ai uniquement fait appel à l'API pour enrichir le JSON de sortie. Cependant,
-il aurait été possible d'utilisé Messenger pour le faire de manière asynchrone (pas les mêmes
-notions de récurrences qu'avec JS). Ici on attends la réponse de la requête donc pas utile de
-faire la requête à l'API en arrière plan, mais peut être quand même interessant si on veut faire
-un create un peu complexe pour avoir accès au terminal pendant que la requête à l'API externe se
-poursuis.
+Dans mon projet, j’ai utilisé l’API publique OpenLibrary pour enrichir les données JSON retournées par mes endpoints GET /livres et GET /livres/{id}.
+
+Si un ISBN est présent j'envoie une requête à OpenLibrary pour récupérer :
+
+- le nombre de pages
+- l’image de couverture
 
 1. Créer un **message Symfony** (classe DTO)
 2. Créer un **handler** (`MessageHandlerInterface`)
