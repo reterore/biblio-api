@@ -57,3 +57,4 @@
 - curl.exe -X DELETE "http://localhost:8000/emprunts/77"
 - curl.exe "http://localhost:8000/emprunts/search?en_cours=true"
 - curl.exe "http://localhost:8000/emprunts/search?en_cours=false"
+
